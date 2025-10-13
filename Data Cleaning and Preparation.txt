@@ -1,0 +1,28 @@
+
+# --- 3. Data Cleaning and Preparation (for ML/DL Models) ---
+features_to_use = ['year', 'make', 'model', 'body', 'condition', 'odometer', 'mmr']
+df_ml = df[features_to_use + ['sellingprice']].copy()
+df_ml.fillna(df_ml['mmr'].mean(numeric_only=True), inplace=True) 
+
+categorical_features = ['make', 'model', 'body'] 
+
+for col in categorical_features:
+    df_ml[col].fillna('Missing', inplace=True)
+    df_ml[col] = df_ml[col].astype(str)
+
+X = df_ml.drop('sellingprice', axis=1)
+Y = df_ml['sellingprice']
+
+numerical_features = ['year', 'condition', 'odometer', 'mmr']
+
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', StandardScaler(), numerical_features),  # Scaling/Mean Removal
+        ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features) # Label Encoding
+    ],
+    remainder='drop' 
+)
+
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.4, random_state=42)
+print("\nData Split Complete.")
+
