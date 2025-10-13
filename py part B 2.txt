@@ -1,0 +1,50 @@
+
+# =====================================================================
+
+X_train_processed = preprocessor.fit_transform(X_train).toarray() 
+X_test_processed = preprocessor.transform(X_test).toarray()
+input_dimension = X_train_processed.shape[1]
+
+Y_train_array = Y_train.values
+Y_test_array = Y_test.values
+
+def build_dl_model(input_dim):
+    """Builds a Multi-Layer Perceptron (MLP) for Regression using Keras."""
+    model = Sequential([
+        Dense(128, input_shape=(input_dim,), activation='relu'), 
+        Dense(64, activation='relu'),
+        Dense(1) 
+    ])
+    
+    model.compile(optimizer=Adam(learning_rate=0.001), 
+                  loss='mse', 
+                  metrics=['mae']) 
+    return model
+
+dl_model = build_dl_model(input_dimension)
+print("\n--- Training Deep Learning Model (Keras MLP) ---")
+dl_history = dl_model.fit(
+    X_train_processed, Y_train_array,
+    epochs=10,             
+    batch_size=32,         
+    validation_split=0.1, 
+    verbose=0
+)
+print("Training Complete.")
+
+Y_dl_pred = dl_model.predict(X_test_processed).flatten()
+dl_r2 = r2_score(Y_test_array, Y_dl_pred)
+
+print("\n--- Deep Learning Performance ---")
+print(f"DL R-squared Score (R2): {dl_r2:.4f}")
+
+plt.figure(figsize=(10, 6))
+plt.plot(dl_history.history['loss'], label='Training Loss')
+plt.plot(dl_history.history['val_loss'], label='Validation Loss')
+plt.title('DL Training Error Progress (Loss vs. Epochs)')
+plt.xlabel('Number of Epochs')
+plt.ylabel('Loss (Mean Squared Error)')
+plt.legend()
+plt.grid(True)
+plt.show()
+
